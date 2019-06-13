@@ -20,6 +20,10 @@ def geid():
 
 #mudei essa linha
 
+times = [0.0]
+count_samples_on_queue = 0
+counts_samples_on_queue = [0]
+
 timeslice_gamestate_dict = {}
 timeslice_samples_dict = defaultdict(list)
 
@@ -79,13 +83,18 @@ while count < config.number_of_events :
             new_time = time + config.write_delay
             heapq.heappush(event_queue,Event(new_time,geid(),config.GS_WRITTEN))
     elif event_type == config.SAMPLE_COLLECT :
+        times.append(time)
+        count_samples_on_queue = count_samples_on_queue + 1
+        counts_samples_on_queue.append(count_samples_on_queue)
         #gera evento da proxima amostra
         new_time = time+config.sample_time()
-        print(new_time)
         heapq.heappush(event_queue,Event(new_time,geid(),config.SAMPLE_COLLECT))
         #coloca sample na fila
         sq.add(time)
     elif event_type == config.SAMPLE_READ :
+        times.append(time)
+        count_samples_on_queue = count_samples_on_queue - 1
+        counts_samples_on_queue.append(count_samples_on_queue)
         #termina servico
         sample = sq.end_service(time)
 
@@ -106,12 +115,26 @@ print(time_slice_id)
 
 import matplotlib.pyplot as plt
 
-x = [i for i in range(1,time_slice_id)]
-y = [len(timeslice_samples_dict[i]) for i in range(1,time_slice_id)]
+def get_value_if_exists_from(vet,on=0,otherwise = 0):
+    if(len(vet) > 0): return vet[on].time_sampled
+    return otherwise
 
-print(y)
+x = [i for i in range(1,time_slice_id) ]
+y = [len(timeslice_samples_dict[i]) for i in x]
+y1 = [ get_value_if_exists_from(timeslice_samples_dict[i],on=0,otherwise=0) for i in x]
+y2 = [ get_value_if_exists_from(timeslice_samples_dict[i],on=-1,otherwise=0) for i in x]
+
+#print(y1)
+#print(y2)
 
 print("after")
 
+plt.plot(x,y1)
+plt.plot(x,y2)
+plt.show()
+
 plt.plot(x,y)
+plt.show()
+
+plt.plot(times,counts_samples_on_queue)
 plt.show()

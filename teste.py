@@ -23,3 +23,6 @@ tmp = c
 while tmp != None :
     print(tmp.value)
     tmp = tmp.next
+
+array1 = [ [1, 0], [0, 1] ]
+print (array1[0][1])
